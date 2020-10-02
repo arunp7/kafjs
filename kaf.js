@@ -59,6 +59,10 @@ function loadExisting(dbfolder, cb) {
       }
 
       function add_rec_1(s, e) {
+        while(data[s] == '\n' || data[s] == ' ' || data[s] == '\t') {
+          if(s == e) return
+          s++
+        }
         let line = data.subarray(s, e)
         try {
           recs.push(JSON.parse(line))
