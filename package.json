@@ -1,0 +1,16 @@
+{
+  "name": "kafjs",
+  "version": "0.1.0",
+  "description": "Embedded Event Store for Javascript",
+  "main": "kafjs.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/theproductiveprogrammer/kafjs.git"
+  },
+  "author": "charles.lobo@gmail.com",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/theproductiveprogrammer/kafjs/issues"
+  },
+  "homepage": "https://github.com/theproductiveprogrammer/kafjs#readme"
+}
