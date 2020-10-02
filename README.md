@@ -10,7 +10,9 @@ An embedded event store for Javascript heavily inspired by [Kaf](https://github.
 
    ```js
    const kaf = require("@tpp/kafjs")
-   kaf.startServer(PORT, DBFOLDER)
+   kaf.startServer(PORT, DBFOLDER, err => {
+     if(err.code === "EADDRINUSE") ...
+   })
    ```
 
 3. POST messages to your logfile (auto-created):
