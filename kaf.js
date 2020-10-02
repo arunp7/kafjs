@@ -19,7 +19,10 @@ function startServer(port, dbfolder, cb) {
  */
 function serve(port, data, cb) {
   const server = http.createServer((req, res) => {
-    res.end(data)
+    if(req.url.startsWith("/put/")) return put(req, res)
+    if(req.url.startsWith("/get/")) return get(req, res)
+    res.writeHead(404)
+    res.end()
   })
   server.listen(port, "127.0.0.1", cb)
 }
