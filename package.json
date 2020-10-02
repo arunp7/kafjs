@@ -2,7 +2,7 @@
   "name": "kafjs",
   "version": "0.1.0",
   "description": "Embedded Event Store for Javascript",
-  "main": "kafjs.js",
+  "main": "kaf.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/theproductiveprogrammer/kafjs.git"
