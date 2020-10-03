@@ -25,7 +25,12 @@ function serve(port, db, cb) {
     res.writeHead(404)
     res.end()
   })
-  server.listen(port, "127.0.0.1", cb)
+  server.listen(port, "127.0.0.1", err => {
+    if(err) cb(err)
+    else {
+      lg('started on port', db)
+    }
+  })
 }
 
 /*    way/
@@ -66,14 +71,9 @@ function put(req, res, db) {
     body = Buffer.concat(body)
     try {
       let rec = JSON.parse(body.subarray(0, body.length-1))
-      let loc = db.dbfolder
-      fs.appendFile(path.join(loc, logfile), body, err => {
+      newRec(rec, body, logfile, db, err => {
         if(err) resp_1(500, err)
-        else {
-          if(db.data[logfile]) db.data[logfile].push(rec)
-          else db.data[logfile] = [rec]
-          resp_1(200)
-        }
+        else resp_1(200)
       })
     } catch(e) {
       resp_1(400, e)
@@ -89,6 +89,20 @@ function put(req, res, db) {
     if(msg && typeof msg !== 'string') msg = "" + msg
     res.end(msg)
   }
+}
+
+/*    way/
+ * append the new record to the appropriate log file and
+ * add it to the in-memory cache
+ */
+function newRec(rec, body, name, db, cb) {
+  if(!body) body = JSON.stringify(rec) + "\n"
+  fs.appendFile(path.join(db.dbfolder, name), body, err => {
+    if(err) return cb(err)
+    if(db.data[name]) db.data[name].push(rec)
+    else db.data[name] = [rec]
+    cb()
+  })
 }
 
 /*    way/
@@ -140,7 +154,10 @@ function loadExisting(dbfolder, cb) {
         try {
           recs.push(JSON.parse(line))
         } catch(e) {
-          console.error(e)
+          lgErr(`error reading file:${curr}`, e, {
+            data: DB,
+            dbfolder,
+          })
         }
       }
     })
@@ -151,6 +168,36 @@ function loadExisting(dbfolder, cb) {
  * We treat 'dot' files as hidden
  */
 function isHidden(fname) { !fname || fname[0] == "." }
+
+/*    understand/
+ * the internal log file used to manage our own info
+ */
+const LG = "_kafjs"
+
+/*    way/
+ * add an entry to our internal log file
+ */
+function lg(m, db) {
+  let msg = { t: new Date().toISOString(), log: m }
+  newRec(msg, null, LG, db, err => {
+    if(err) console.error(err)
+  })
+}
+
+/*    way/
+ * record an error in our internal log file
+ */
+function lgErr(m, e, db) {
+  let msg = {
+    t: new Date().toISOString(),
+    err: m,
+  }
+  if(e.stack) msg.stack = e.stack
+  else msg.err += ":" + e.toString()
+  newRec(msg, null, LG, db, err => {
+    if(err) console.error(err)
+  })
+}
 
 module.exports = {
   startServer,
