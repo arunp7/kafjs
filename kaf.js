@@ -2,6 +2,7 @@
 const fs = require('fs')
 const path = require('path')
 const http = require('http')
+const url = require('url')
 
 /*    way/
  * load existing data and start the server
@@ -19,9 +20,8 @@ function startServer(port, dbfolder, cb) {
  */
 function serve(port, db, cb) {
   const server = http.createServer((req, res) => {
-    let u = req.url
-    if(u.startsWith("/put/")) return put(req, res, db)
-    if(u.startsWith("/get/")) return get(req, res, db)
+    if(req.url.startsWith("/put/")) return put(req, res, db)
+    if(req.url.startsWith("/get/")) return get(req, res, db)
     res.writeHead(404)
     res.end()
   })
@@ -29,11 +29,35 @@ function serve(port, db, cb) {
 }
 
 /*    way/
+ * get the logfile and the message number and send a couple of messages
+ * from that number onward back.
+ */
+function get(req, res, db) {
+  let u = new URL(req.url, "http://localhost")
+  let logfile = u.pathname.substring("/get/".length)
+  let start = parseInt(u.searchParams.get("from"), 10)
+  if(!start || isNaN(start)) {
+    res.writeHead(400)
+    res.end("invalid from="+start)
+    return
+  }
+  let ret = []
+  let log = db.data[logfile]
+  if(log) {
+    start -= 1
+    ret = log.slice(start, start + 4)
+    res.setHeader("X-KAFJS-LASTMSGSENT", start + ret.length)
+  }
+  res.end(JSON.stringify(ret))
+}
+
+/*    way/
  * get the logfile and the JSON object to put and append
  * it to the log file
  */
 function put(req, res, db) {
-  let logfile = req.url.substring("/put/".length)
+  let u = new URL(req.url, "http://localhost")
+  let logfile = u.pathname.substring("/put/".length)
   let body = []
   req.on("data", chunk => body.push(chunk))
   req.on("end", () => {
