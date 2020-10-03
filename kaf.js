@@ -9,7 +9,7 @@ const http = require('http')
 function startServer(port, dbfolder, cb) {
   loadExisting(dbfolder, (err, data) => {
     if(err) cb(err)
-    else serve(port, data, cb)
+    else serve(dbfolder, port, data, cb)
   })
 }
 
@@ -17,14 +17,43 @@ function startServer(port, dbfolder, cb) {
  * start a http server on the port serving and updating
  * the given data
  */
-function serve(port, data, cb) {
+function serve(loc, port, data, cb) {
   const server = http.createServer((req, res) => {
-    if(req.url.startsWith("/put/")) return put(req, res)
-    if(req.url.startsWith("/get/")) return get(req, res)
+    let u = req.url
+    if(u.startsWith("/put/")) return put(loc, req, res)
+    if(u.startsWith("/get/")) return get(loc, req, res)
     res.writeHead(404)
     res.end()
   })
   server.listen(port, "127.0.0.1", cb)
+}
+
+/*    way/
+ * get the logfile and the JSON object to put and append
+ * it to the log file
+ */
+function put(loc, req, res) {
+  let logfile = req.url.substring("/put/".length)
+  let body = []
+  req.on("data", chunk => body.push(chunk))
+  req.on("end", () => {
+    if(body.length == 0) return resp_1(400, "Nothing to do")
+    body.push(Buffer.from("\n"))
+    body = Buffer.concat(body)
+    fs.appendFile(path.join(loc, logfile), body, err => {
+      if(err) resp_1(500, err)
+      else resp_1(200)
+    })
+  })
+  req.on("error", err => resp_1(500, err))
+
+  let sent
+  function resp_1(status, msg) {
+    if(sent) return
+    sent = true
+    res.writeHead(status)
+    res.end(msg)
+  }
 }
 
 /*    way/
