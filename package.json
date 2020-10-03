@@ -1,6 +1,6 @@
 {
   "name": "kafjs",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Embedded Event Store for Javascript",
   "main": "kaf.js",
   "repository": {
