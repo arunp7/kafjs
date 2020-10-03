@@ -69,29 +69,38 @@ function loadExisting(dbfolder, cb) {
     }
   })
 
+  const NL=10
+  const CR=13
+  const SP=32
+  const TAB=9
+
   function load_ndx_1(files, ndx) {
-    if(ndx >= files.length) return cb()
+    if(ndx >= files.length) return cb(null, DB)
     let curr = files[ndx]
     if(isHidden(curr)) return load_ndx_1(files, ndx+1)
-    fs.readFile(path.join(dbloc, curr), (err, data) => {
+    fs.readFile(path.join(dbfolder, curr), (err, data) => {
       let recs = []
       if(err) cb(err)
       else {
         let s = 0
         for(let i = 0;i < data.length;i++) {
-          if(data[i] == '\n') {
+          if(data[i] == NL || data[i] == CR) {
             add_rec_1(s, i)
+            s = i
           }
         }
         add_rec_1(s, data.length)
         DB[curr] = recs
+        load_ndx_1(files, ndx+1)
       }
 
       function add_rec_1(s, e) {
-        while(data[s] == '\n' || data[s] == ' ' || data[s] == '\t') {
+        while(data[s] == NL || data[s] == CR
+          || data[s] == SP || data[s] == TAB) {
           if(s == e) return
           s++
         }
+        if(s == e) return
         let line = data.subarray(s, e)
         try {
           recs.push(JSON.parse(line))
