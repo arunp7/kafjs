@@ -4,12 +4,12 @@ An embedded event store for Javascript heavily inspired by [Kaf](https://github.
 
 ## QuickStart
 
-1. Install **KafJS**: `npm i @tpp/kafjs`
+1. Install **KafJS**: `npm i kafjs`
 
 2. Start the embedded server: 
 
    ```js
-   const kaf = require("@tpp/kafjs")
+   const kaf = require("kafjs")
    kaf.startServer(PORT, DBFOLDER, err => {
      if(err.code === "EADDRINUSE") ...
    })
