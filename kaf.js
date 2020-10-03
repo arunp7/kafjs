@@ -29,6 +29,7 @@ function serve(port, db, cb) {
     if(err) cb(err)
     else {
       lg('started on port', db)
+      cb()
     }
   })
 }
