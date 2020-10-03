@@ -25,11 +25,15 @@ function serve(port, db, cb) {
     res.writeHead(404)
     res.end()
   })
+  server.on("error", err => {
+    cb(err)
+    cb = null
+  })
   server.listen(port, "127.0.0.1", err => {
-    if(err) cb(err)
-    else {
+    if(!err) {
       lg('started on port', db)
-      cb()
+      cb && cb()
+      cb = null
     }
   })
 }
