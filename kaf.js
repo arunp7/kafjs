@@ -52,6 +52,7 @@ function put(loc, req, res) {
     if(sent) return
     sent = true
     res.writeHead(status)
+    if(msg && typeof msg !== 'string') msg = "" + msg
     res.end(msg)
   }
 }
