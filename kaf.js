@@ -20,6 +20,7 @@ function startServer(port, dbfolder, cb) {
  */
 function serve(port, db, cb) {
   const server = http.createServer((req, res) => {
+    if(req.method == "OPTIONS") return handleCORS(req, res)
     if(req.url.startsWith("/put/")) return put(req, res, db)
     if(req.url.startsWith("/get/")) return get(req, res, db)
     res.writeHead(404)
@@ -36,6 +37,22 @@ function serve(port, db, cb) {
       cb = null
     }
   })
+}
+
+function addCORSHeaders(req, res) {
+  let origin = req.headers["origin"]
+  if(!origin) return
+  res.setHeader("Access-Control-Allow-Origin", origin)
+  res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+  res.setHeader("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+}
+
+/*    way/
+ * allow cross-origin requests to access our data
+ */
+function handleCORS(req, res) {
+  addCORSHeaders(req, res)
+  res.end()
 }
 
 /*    way/
@@ -58,6 +75,7 @@ function get(req, res, db) {
     ret = log.slice(start, start + 4)
     res.setHeader("X-KAFJS-LASTMSGSENT", start + ret.length)
   }
+  addCORSHeaders(req, res)
   res.end(JSON.stringify(ret))
 }
 
@@ -92,6 +110,7 @@ function put(req, res, db) {
     sent = true
     res.writeHead(status)
     if(msg && typeof msg !== 'string') msg = "" + msg
+    addCORSHeaders(req, res)
     res.end(msg)
   }
 }
