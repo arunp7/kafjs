@@ -108,9 +108,9 @@ function put(req, res, db) {
   function resp_1(status, msg) {
     if(sent) return
     sent = true
+    addCORSHeaders(req, res)
     res.writeHead(status)
     if(msg && typeof msg !== 'string') msg = "" + msg
-    addCORSHeaders(req, res)
     res.end(msg)
   }
 }
