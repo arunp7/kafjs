@@ -44,7 +44,8 @@ function addCORSHeaders(req, res) {
   if(!origin) return
   res.setHeader("Access-Control-Allow-Origin", origin)
   res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-  res.setHeader("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+  res.setHeader("Access-Control-Allow-Headers", "*")
+  res.setHeader("Access-Control-Expose-Headers", "*")
 }
 
 /*    way/
