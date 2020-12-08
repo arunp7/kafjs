@@ -192,7 +192,7 @@ function loadExisting(dbfolder, cb) {
 /*    understand/
  * We treat 'dot' files as hidden
  */
-function isHidden(fname) { !fname || fname[0] == "." }
+function isHidden(fname) { return !fname || fname[0] == "." }
 
 /*    understand/
  * the internal log file used to manage our own info
