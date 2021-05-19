@@ -73,7 +73,7 @@ function get(req, res, db) {
   let log = db.data[logfile]
   if(log) {
     start -= 1
-    ret = log.slice(start, start + 4)
+    ret = log.slice(start, start + 4096)
     res.setHeader("X-KAFJS-LASTMSGSENT", start + ret.length)
   }
   addCORSHeaders(req, res)
