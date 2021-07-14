@@ -7,6 +7,7 @@
     "type": "git",
     "url": "git+https://github.com/theproductiveprogrammer/kafjs.git"
   },
+  "keywords": ["kafka","database","event log"],
   "author": "charles.lobo@gmail.com",
   "license": "UNLICENSED",
   "bugs": {
