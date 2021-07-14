@@ -37,6 +37,7 @@ kaf.startServer({
   dbfolder: dbfolder,
   ignore_errors: false,
 }, err => {
+  if(err.code === "LOADFAILED") console.error(err.errors)
   ...
 })
 ```
