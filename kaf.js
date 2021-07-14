@@ -4,11 +4,25 @@ const path = require('path')
 const http = require('http')
 const url = require('url')
 
+function startServer(opts_or_port, dbfolder_or_cb, cb) {
+  let opts = opts_or_port
+  if(typeof opts !== 'object') {
+    opts = {
+      port: opts_or_port,
+      dbfolder: dbfolder_or_cb
+    }
+  } else {
+    cb = dbfolder_or_cb
+  }
+
+  startSvr(opts, cb)
+}
+
 /*    way/
  * load existing data and start the server
  */
-function startServer(port, dbfolder, cb) {
-  loadExisting(dbfolder, (err, data) => {
+function startServer(opts, cb) {
+  loadExisting(opts.dbfolder, opts.ignore_errors, (err, data) => {
     if(err) cb(err)
     else serve(port, { dbfolder, data }, cb)
   })
@@ -134,12 +148,16 @@ function newRec(rec, body, name, db, cb) {
  * walk all the files (ignoring hidden files) and load each one -
  * ignoring parse errors (just logging them out)
  */
-function loadExisting(dbfolder, cb) {
+function loadExisting(dbfolder, ignore_errors, cb) {
   let DB = {}
+  let ERRS = []
   fs.readdir(dbfolder, (err, files) => {
     if(err) cb(err)
     else {
-      load_ndx_1(files, 0)
+      load_ndx_1(files, 0, () => {
+        if(ERRS.length) cb({ code: "LOADFAILED", errors: ERRS }, DB)
+        else cb(null, DB)
+      })
     }
   })
 
@@ -148,14 +166,19 @@ function loadExisting(dbfolder, cb) {
   const SP=32
   const TAB=9
 
-  function load_ndx_1(files, ndx) {
-    if(ndx >= files.length) return cb(null, DB)
+  function load_ndx_1(files, ndx, cb) {
+    if(ndx >= files.length) return cb()
     let curr = files[ndx]
-    if(isHidden(curr)) return load_ndx_1(files, ndx+1)
+    if(isHidden(curr)) return load_ndx_1(files, ndx+1, cb)
     fs.readFile(path.join(dbfolder, curr), (err, data) => {
       let recs = []
-      if(err) cb(err)
-      else {
+      if(err) {
+        ERRS.push(err)
+        lgErr(`error reading file:${curr}`, e, {
+          data: DB,
+          dbfolder,
+        })
+      } else {
         let s = 0
         for(let i = 0;i < data.length;i++) {
           if(data[i] == NL || data[i] == CR) {
@@ -165,7 +188,7 @@ function loadExisting(dbfolder, cb) {
         }
         add_rec_1(s, data.length)
         DB[curr] = recs
-        load_ndx_1(files, ndx+1)
+        load_ndx_1(files, ndx+1, cb)
       }
 
       function add_rec_1(s, e) {
@@ -179,6 +202,7 @@ function loadExisting(dbfolder, cb) {
         try {
           recs.push(JSON.parse(line))
         } catch(e) {
+          ERRS.push(e)
           lgErr(`error reading file:${curr}`, e, {
             data: DB,
             dbfolder,
