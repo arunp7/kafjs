@@ -28,6 +28,8 @@ function startSvr(opts, cb) {
   })
 }
 
+let NO_LAST_NL = false
+
 /*    way/
  * start a http server on the port serving and updating
  * the given data
@@ -102,6 +104,10 @@ function put(req, res, db) {
   let u = new URL(req.url, "http://localhost")
   let logfile = u.pathname.substring("/put/".length)
   let body = []
+  if(NO_LAST_NL) {
+    body.push(Buffer.from("\n"))
+    NO_LAST_NL = false
+  }
   req.on("data", chunk => body.push(chunk))
   req.on("end", () => {
     if(body.length == 0) return resp_1(400, "Nothing to do")
@@ -189,7 +195,7 @@ function loadExisting(dbfolder, ignore_errors, cb) {
           }
         }
         lnum++
-        add_rec_1(s, data.length, lnum)
+        if(add_rec_1(s, data.length, lnum)) NO_LAST_NL = true
         DB[curr] = recs
         load_ndx_1(files, ndx+1, cb)
       }
@@ -197,10 +203,10 @@ function loadExisting(dbfolder, ignore_errors, cb) {
       function add_rec_1(s, e, lnum) {
         while(data[s] == NL || data[s] == CR
           || data[s] == SP || data[s] == TAB) {
-          if(s == e) return
+          if(s == e) return false
           s++
         }
-        if(s == e) return
+        if(s == e) return false
         let line = data.subarray(s, e)
         try {
           recs.push(JSON.parse(line))
@@ -211,6 +217,7 @@ function loadExisting(dbfolder, ignore_errors, cb) {
             dbfolder,
           })
         }
+        return true
       }
     })
   }
