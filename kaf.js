@@ -173,25 +173,28 @@ function loadExisting(dbfolder, ignore_errors, cb) {
     fs.readFile(path.join(dbfolder, curr), (err, data) => {
       let recs = []
       if(err) {
-        ERRS.push(err)
+        ERRS.push({file: curr, err})
         lgErr(`error reading file:${curr}`, e, {
           data: DB,
           dbfolder,
         })
       } else {
         let s = 0
+        let lnum = 0
         for(let i = 0;i < data.length;i++) {
           if(data[i] == NL || data[i] == CR) {
-            add_rec_1(s, i)
+            lnum++
+            add_rec_1(s, i, lnum)
             s = i
           }
         }
-        add_rec_1(s, data.length)
+        lnum++
+        add_rec_1(s, data.length, lnum)
         DB[curr] = recs
         load_ndx_1(files, ndx+1, cb)
       }
 
-      function add_rec_1(s, e) {
+      function add_rec_1(s, e, lnum) {
         while(data[s] == NL || data[s] == CR
           || data[s] == SP || data[s] == TAB) {
           if(s == e) return
@@ -202,7 +205,7 @@ function loadExisting(dbfolder, ignore_errors, cb) {
         try {
           recs.push(JSON.parse(line))
         } catch(e) {
-          ERRS.push(e)
+          ERRS.push({file: curr, line: lnum, err: e})
           lgErr(`error reading file:${curr}`, e, {
             data: DB,
             dbfolder,
