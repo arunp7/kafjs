@@ -21,10 +21,10 @@ function startServer(opts_or_port, dbfolder_or_cb, cb) {
 /*    way/
  * load existing data and start the server
  */
-function startServer(opts, cb) {
+function startSvr(opts, cb) {
   loadExisting(opts.dbfolder, opts.ignore_errors, (err, data) => {
     if(err) cb(err)
-    else serve(port, { dbfolder, data }, cb)
+    else serve(opts.port, { dbfolder: opts.dbfolder, data }, cb)
   })
 }
 
